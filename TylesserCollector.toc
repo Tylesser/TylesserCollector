@@ -4,8 +4,8 @@
 ## Author: Tylesser
 ## Version: @project-version@
 ## X-License: MIT
-## X-Curse-Project-ID: 0
-## X-Wago-ID: TODO
+## X-Curse-Project-ID: 1829121
+## X-Wago-ID: O67bBgN3
 ## X-Website: https://tylesser.com/tylessercollector/
 ## IconTexture: Interface\AddOns\TylesserCollector\Media\Icon
 ## SavedVariables: TylesserCollectorDB
