@@ -1,0 +1,15 @@
+## Interface: 16001
+## Title: Tylesser - Collector
+## Notes: Records the WoW Forever game data you see while you play (NPCs, quests, drops, vendors, herbs, flight times...) so you can share it on tylesser.com for the Tylesser - Data addon. Never records players.
+## Author: Tylesser
+## Version: @project-version@
+## X-License: MIT
+## X-Curse-Project-ID: 0
+## X-Wago-ID: TODO
+## X-Website: https://tylesser.com/tylessercollector/
+## IconTexture: Interface\AddOns\TylesserCollector\Media\Icon
+## SavedVariables: TylesserCollectorDB
+
+Tylesser.lua
+Collector.lua
+UI.lua
