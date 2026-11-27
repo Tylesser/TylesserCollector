@@ -62,10 +62,6 @@ Install from CurseForge or Wago, or download the latest zip from
 [Releases](https://github.com/Tylesser/TylesserCollector/releases) and extract it to `Interface/AddOns`. The folder must
 be named `TylesserCollector`.
 
-## More from Tylesser
-
-Features, changelog and the other Tylesser addons are on [tylesser.com](https://tylesser.com/tylessercollector/).
-
 ## Releasing (maintainers)
 
 Tag `vX.Y.Z` after moving the changes into a `## X.Y.Z` section of `CHANGELOG.md`; the release workflow builds the zip
