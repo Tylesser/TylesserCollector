@@ -1,4 +1,5 @@
 local addonName, ns = ...
+local L = ns.L
 
 -- Tylesser Collector (2026-11-24, private: the user and the people they hand it to). It only listens to what the game
 -- shows you while you play and keeps it in TylesserCollectorDB (written by the game on /reload or logout), for
@@ -16,7 +17,7 @@ local addonName, ns = ...
 --   taxi[node]    flight points (name, map, position), and the flight master
 --   (2026-11-24, "do all": everything below too)
 --   quests        + description, progress and completion texts, required items and money, rewards (choice / given
---                 items, money, xp), time limit, reputation, the quest done just before it (chains)
+--                 items, money, xp, currencies), time limit, reputation, the quest done just before it (chains)
 --   loot          + containers opened from the bags ("item:<id>"), skinning / pick pocket / mining / herbs on a
 --                 corpse ("skin:<npc>" ...), money per source, your fishing skill at each catch
 --   npcs          + xp per kill by your level, reputation per kill, spells they cast, rare sightings (time, spot,
@@ -481,6 +482,24 @@ local function NoteRewards(quest)
   local money, xp = Num(Ask(GetRewardMoney)), Num(Ask(GetRewardXP))
   if money and money > 0 then quest.rewardMoney = money end
   if xp and xp > 0 then quest.rewardXP = xp end
+  -- Currency rewards (2026-11-27: the Merchant's Favor a Sealed crate gives, for Commerce Authority): the quest
+  -- window's own source (forever Blizzard_UIPanels_Game/Mainline/QuestInfo.lua QuestInfo_ShowRewards:
+  -- C_QuestInfoSystem.GetQuestRewardCurrencies(questID), QuestRewardCurrencyInfo). Base amount: before talents.
+  local questID = Num(Ask(GetQuestID))
+  local list = questID and C_QuestInfoSystem and Ask(C_QuestInfoSystem.GetQuestRewardCurrencies, questID)
+  if type(list) == "table" then
+    local currencies = {}
+    for _, info in ipairs(list) do
+      local id = type(info) == "table" and Num(info.currencyID)
+      local count = type(info) == "table" and (Num(info.baseRewardAmount) or Num(info.totalRewardAmount))
+      if id and count and count > 0 then
+        currencies[#currencies + 1] = { currency = id, count = count }
+      end
+    end
+    if #currencies > 0 then
+      quest.currencies = currencies
+    end
+  end
 end
 
 function ns.QuestDetail(startItemID)
@@ -1881,13 +1900,12 @@ end
 
 function ns.Summary()
   if not DB then
-    return "not loaded"
+    return L["not loaded"]
   end
-  return ("%d NPCs, %d objects, %d quests, %d vendors, %d trainers, %d loot sources, %d flight points, "
-    .. "%d instances, %d bosses, %d flights timed, %d rares / treasures, %d recipes, %d prices, %d texts%s"):format(
+  return L["%d NPCs, %d objects, %d quests, %d vendors, %d trainers, %d loot sources, %d flight points, %d instances, %d bosses, %d flights timed, %d rares / treasures, %d recipes, %d prices, %d texts"]:format(
     Count(DB.npcs), Count(DB.objects), Count(DB.quests), Count(DB.vendors), Count(DB.trainers), Count(DB.loot),
     Count(DB.taxi), Count(DB.instances), Count(DB.encounters), Count(DB.flights), Count(DB.vignettes),
-    Count(DB.recipes), Count(DB.prices), Count(DB.texts), paused and " (paused)" or "")
+    Count(DB.recipes), Count(DB.prices), Count(DB.texts)) .. (paused and L[" (paused)"] or "")
 end
 
 local function Say(text)
@@ -1897,12 +1915,12 @@ end
 -- Sharing: the game writes the file on /reload or logout; players upload it on tylesser.com (an addon can't send).
 ns.UPLOAD_URL = "https://tylesser.com/collect/"
 function ns.ShowUpload()
-  local text = "Type /reload first so the game saves it, then upload this file on the page:\n"
-    .. "World of Warcraft\\_forever_\\WTF\\Account\\<your account>\\SavedVariables\\TylesserCollector.lua"
+  local text = L["Type /reload first so the game saves it, then upload this file on the page:"] .. "\n"
+    .. "World of Warcraft\\_forever_\\WTF\\Account\\" .. L["<your account>"] .. "\\SavedVariables\\TylesserCollector.lua"
   if ns.T and ns.T.ShowLink then
     ns.T.ShowLink(ns.UPLOAD_URL, text)
   else
-    Say("upload your file on " .. ns.UPLOAD_URL)
+    Say(L["upload your file on %s"]:format(ns.UPLOAD_URL))
   end
 end
 
@@ -1919,31 +1937,31 @@ SlashCmdList.TYLESSERCOLLECTOR = function(message)
   local command = (message or ""):lower():match("^%s*(.-)%s*$")
   if command == "pause" then
     paused = true
-    Say("paused. /tcollect resume to go on.")
+    Say(L["paused. %s to go on."]:format("/tcollect resume"))
   elseif command == "resume" then
     paused = false
-    Say("collecting again.")
+    Say(L["collecting again."])
   elseif command == "reset yes" then
     for key in pairs(DB or {}) do
       DB[key] = nil
     end
     HANDLERS.ADDON_LOADED(addonName)
-    Say("emptied.")
+    Say(L["emptied."])
   elseif command == "reset" then
-    Say("type /tcollect reset yes to empty everything collected.")
+    Say(L["type %s to empty everything collected."]:format("/tcollect reset yes"))
   elseif command == "upload" then
     ns.ShowUpload()
   elseif command == "id" then
     -- the anonymous install ID: what to send to have your uploaded files removed from tylesser.com
     if ns.T and ns.T.ShowLink and DB and DB.install then
-      ns.T.ShowLink(DB.install, "Your anonymous install ID (send it through /tcollect feedback to have your uploads removed):")
+      ns.T.ShowLink(DB.install, L["Your anonymous install ID (send it through %s to have your uploads removed):"]:format("/tcollect feedback"))
     else
-      Say("install ID: " .. tostring(DB and DB.install))
+      Say(L["install ID: %s"]:format(tostring(DB and DB.install)))
     end
   elseif command == "feedback" and ns.T then
     ns.T.ShowFeedback()
   elseif command == "status" or not ns.view then
-    Say(ns.Summary() .. ". Saved on /reload or logout. /tcollect | status | upload | id | pause | resume | reset | feedback")
+    Say(ns.Summary() .. ". " .. L["Saved on /reload or logout."] .. " /tcollect | status | upload | id | pause | resume | reset | feedback")
   else
     ns.view.Toggle() -- the window (UI.lua)
   end

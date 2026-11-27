@@ -46,6 +46,8 @@ addon made for your install, never with your account name. `/tcollect id` shows 
 | `/tcollect id` | Your anonymous install ID |
 | `/tcollect feedback` | The link to report a bug or suggest an idea |
 
+Languages: English, German, French, Spanish (Spain and Mexico), Russian and Brazilian Portuguese, following your game client.
+
 ## Feedback
 
 Found a bug or have an idea? Type `/tcollect feedback` in game to get the link, or go straight to

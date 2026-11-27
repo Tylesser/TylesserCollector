@@ -11,5 +11,6 @@
 ## SavedVariables: TylesserCollectorDB
 
 Tylesser.lua
+Locales.lua
 Collector.lua
 UI.lua

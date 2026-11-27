@@ -1,4 +1,5 @@
 local addonName, ns = ...
+local L = ns.L
 
 -- The collector's window (2026-11-24, the user's request: "an UI to see which kind of data collected and their
 -- details"): the kinds of data on the left with their counts, a searchable list of one kind in the middle, the
@@ -14,27 +15,27 @@ local SIDE, LIST = 170, 300
 local ROW, ROWS = 20, 24 -- (the range line under the rows stays clear of the note at the bottom)
 
 V.KINDS = {
-  { key = "npcs", name = "NPCs" },
-  { key = "objects", name = "Objects" },
-  { key = "quests", name = "Quests" },
-  { key = "vendors", name = "Vendors" },
-  { key = "trainers", name = "Trainers" },
-  { key = "loot", name = "Loot sources" },
-  { key = "taxi", name = "Flight points" },
-  { key = "flights", name = "Flight times" },
-  { key = "instances", name = "Dungeons" },
-  { key = "encounters", name = "Bosses" },
-  { key = "areas", name = "Sub-zones" },
-  { key = "discovered", name = "Discovered" },
-  { key = "graveyards", name = "Graveyards" },
-  { key = "vignettes", name = "Rares & treasures" },
-  { key = "pois", name = "Map points" },
-  { key = "recipes", name = "Recipes" },
-  { key = "prices", name = "Auction prices" },
-  { key = "texts", name = "Readable texts" },
-  { key = "speech", name = "Unnamed speakers" },
-  { key = "mail", name = "Letters" },
-  { key = "errors", name = "Errors" },
+  { key = "npcs", name = "NPCs", label = L["NPCs"] },
+  { key = "objects", name = "Objects", label = L["Objects"] },
+  { key = "quests", name = "Quests", label = L["Quests"] },
+  { key = "vendors", name = "Vendors", label = L["Vendors"] },
+  { key = "trainers", name = "Trainers", label = L["Trainers"] },
+  { key = "loot", name = "Loot sources", label = L["Loot sources"] },
+  { key = "taxi", name = "Flight points", label = L["Flight points"] },
+  { key = "flights", name = "Flight times", label = L["Flight times"] },
+  { key = "instances", name = "Dungeons", label = L["Dungeons"] },
+  { key = "encounters", name = "Bosses", label = L["Bosses"] },
+  { key = "areas", name = "Sub-zones", label = L["Sub-zones"] },
+  { key = "discovered", name = "Discovered", label = L["Discovered"] },
+  { key = "graveyards", name = "Graveyards", label = L["Graveyards"] },
+  { key = "vignettes", name = "Rares & treasures", label = L["Rares & treasures"] },
+  { key = "pois", name = "Map points", label = L["Map points"] },
+  { key = "recipes", name = "Recipes", label = L["Recipes"] },
+  { key = "prices", name = "Auction prices", label = L["Auction prices"] },
+  { key = "texts", name = "Readable texts", label = L["Readable texts"] },
+  { key = "speech", name = "Unnamed speakers", label = L["Unnamed speakers"] },
+  { key = "mail", name = "Letters", label = L["Letters"] },
+  { key = "errors", name = "Errors", label = L["Errors"] },
 }
 
 -- Names ---------------------------------------------------------------------------------------------------------------
@@ -45,12 +46,12 @@ end
 
 local function NpcName(id)
   local npc = DB().npcs and DB().npcs[id]
-  return (npc and npc.name or "NPC") .. " (" .. tostring(id) .. ")"
+  return (npc and npc.name or L["NPC"]) .. " (" .. tostring(id) .. ")"
 end
 
 local function ObjectName(id)
   local object = DB().objects and DB().objects[id]
-  return (object and object.name or "Object") .. " (" .. tostring(id) .. ")"
+  return (object and object.name or L["Object"]) .. " (" .. tostring(id) .. ")"
 end
 
 local function ItemName(id)
@@ -59,7 +60,7 @@ local function ItemName(id)
     name = ns.Str(ns.Ask(C_Item.GetItemNameByID, id))
   end
   name = name or ns.Str((ns.Ask(GetItemInfo, id)))
-  return (name or "Item") .. " (" .. tostring(id) .. ")"
+  return (name or L["Item"]) .. " (" .. tostring(id) .. ")"
 end
 
 -- A quest's title: what was kept, else what the game knows now (quests first seen without one)
@@ -76,12 +77,12 @@ end
 
 local function QuestName(id)
   local quest = DB().quests and DB().quests[id]
-  return (QuestTitle(id, quest) or "Quest") .. " (" .. tostring(id) .. ")"
+  return (QuestTitle(id, quest) or L["Quest"]) .. " (" .. tostring(id) .. ")"
 end
 
 local function NodeName(id)
   local node = DB().taxi and DB().taxi[tonumber(id)]
-  return node and node.name or ("node " .. tostring(id))
+  return node and node.name or L["node %s"]:format(tostring(id))
 end
 
 local function Money(copper)
@@ -91,9 +92,9 @@ local function Money(copper)
   end
   local gold, silver, rest = math.floor(copper / 10000), math.floor(copper / 100) % 100, copper % 100
   local parts = {}
-  if gold > 0 then parts[#parts + 1] = gold .. "g" end
-  if silver > 0 then parts[#parts + 1] = silver .. "s" end
-  if rest > 0 or #parts == 0 then parts[#parts + 1] = rest .. "c" end
+  if gold > 0 then parts[#parts + 1] = L["%dg"]:format(gold) end
+  if silver > 0 then parts[#parts + 1] = L["%ds"]:format(silver) end
+  if rest > 0 or #parts == 0 then parts[#parts + 1] = L["%dc"]:format(rest) end
   return table.concat(parts, " ")
 end
 V.Money = Money
@@ -111,7 +112,7 @@ local function SpotsText(spots)
   local parts, best = {}, nil
   for map, list in pairs(type(spots) == "table" and spots or {}) do
     for _, spot in ipairs(list) do
-      parts[#parts + 1] = ("map %s: %.1f, %.1f x%d"):format(tostring(map), spot[1], spot[2], spot[3] or 1)
+      parts[#parts + 1] = L["map %s: %.1f, %.1f x%d"]:format(tostring(map), spot[1], spot[2], spot[3] or 1)
       if not best or (spot[3] or 1) > best.n then
         best = { map = map, x = spot[1], y = spot[2], n = spot[3] or 1 }
       end
@@ -124,14 +125,14 @@ end
 local function SourceName(key)
   local kind, id = tostring(key):match("^(%a+):(%d+)$")
   id = tonumber(id)
-  local labels = { npc = "creature", skin = "skinning", pick = "pick pocket", mine = "mining", herb = "herbs",
-    object = "object", item = "container", fishing = "fishing on map" }
+  local labels = { npc = L["creature"], skin = L["skinning"], pick = L["pick pocket"], mine = L["mining"], herb = L["herbs"],
+    object = L["object"], item = L["container"], fishing = L["fishing on map"] }
   if kind == "object" then
     return ObjectName(id), labels[kind]
   elseif kind == "item" then
     return ItemName(id), labels[kind]
   elseif kind == "fishing" then
-    return "Fishing, map " .. tostring(id), labels[kind]
+    return L["Fishing, map %s"]:format(tostring(id)), labels[kind]
   elseif id then
     return NpcName(id), labels[kind] or kind
   end
@@ -148,7 +149,7 @@ ENTRIES.npcs = function(db)
     local _, best = SpotsText(npc.spots)
     local level = npc.minLevel and (npc.minLevel == npc.maxLevel and tostring(npc.minLevel) or (npc.minLevel .. "-" .. npc.maxLevel))
     list[#list + 1] = { id = id, label = (npc.name or "?") .. " (" .. id .. ")",
-      sub = (level and ("level " .. level) or "") .. (npc.title and ("  <" .. npc.title .. ">") or ""), record = npc, spot = best }
+      sub = (level and L["level %s"]:format(level) or "") .. (npc.title and ("  <" .. npc.title .. ">") or ""), record = npc, spot = best }
   end
   return list
 end
@@ -157,7 +158,7 @@ ENTRIES.objects = function(db)
   local list = {}
   for id, object in pairs(db.objects or {}) do
     local _, best = SpotsText(object.spots)
-    local kind = object.gather == "herb" and "herb" or object.gather == "mine" and "ore" or nil
+    local kind = object.gather == "herb" and L["herb"] or object.gather == "mine" and L["ore"] or nil
     local need = object.requires and (object.requires.skill .. (object.requires.level and (" " .. object.requires.level) or ""))
     list[#list + 1] = { id = id, label = (object.name or "?") .. " (" .. id .. ")", sub = need or kind, record = object, spot = best }
   end
@@ -179,7 +180,7 @@ ENTRIES.vendors = function(db)
   for id, vendor in pairs(db.vendors or {}) do
     local npc = db.npcs and db.npcs[id]
     local _, best = SpotsText(npc and npc.spots)
-    list[#list + 1] = { id = id, label = NpcName(id), sub = Count(vendor.items) .. " items", record = vendor, spot = best }
+    list[#list + 1] = { id = id, label = NpcName(id), sub = L["%d items"]:format(Count(vendor.items)), record = vendor, spot = best }
   end
   return list
 end
@@ -189,7 +190,7 @@ ENTRIES.trainers = function(db)
   for id, trainer in pairs(db.trainers or {}) do
     local npc = db.npcs and db.npcs[id]
     local _, best = SpotsText(npc and npc.spots)
-    list[#list + 1] = { id = id, label = NpcName(id), sub = Count(trainer.services) .. " services", record = trainer, spot = best }
+    list[#list + 1] = { id = id, label = NpcName(id), sub = L["%d services"]:format(Count(trainer.services)), record = trainer, spot = best }
   end
   return list
 end
@@ -198,7 +199,7 @@ ENTRIES.loot = function(db)
   local list = {}
   for key, record in pairs(db.loot or {}) do
     local name, kind = SourceName(key)
-    list[#list + 1] = { id = key, label = name, sub = (kind and (kind .. ", ") or "") .. "opened " .. (record.opened or 0),
+    list[#list + 1] = { id = key, label = name, sub = kind and L["%s, opened %s"]:format(kind, record.opened or 0) or L["opened %s"]:format(record.opened or 0),
       record = record }
   end
   return list
@@ -221,7 +222,7 @@ ENTRIES.flights = function(db)
     local fromNode = db.taxi and db.taxi[tonumber(from)]
     local cost = fromNode and fromNode.costs and fromNode.costs[tonumber(to)]
     list[#list + 1] = { id = key, label = NodeName(from) .. " > " .. NodeName(to),
-      sub = ("%d:%02d, flown %d times"):format(math.floor(seconds / 60), seconds % 60, record.n or 0)
+      sub = L["%d:%02d, flown %d times"]:format(math.floor(seconds / 60), seconds % 60, record.n or 0)
         .. (cost and (", " .. Money(cost)) or ""), record = record }
   end
   return list
@@ -240,7 +241,7 @@ ENTRIES.encounters = function(db)
   local list = {}
   for id, encounter in pairs(db.encounters or {}) do
     list[#list + 1] = { id = id, label = (encounter.name or "?") .. " (" .. id .. ")",
-      sub = (encounter.kills or 0) .. " kills, " .. (encounter.wipes or 0) .. " wipes", record = encounter }
+      sub = L["%s kills, %s wipes"]:format(encounter.kills or 0, encounter.wipes or 0), record = encounter }
   end
   return list
 end
@@ -250,7 +251,7 @@ ENTRIES.areas = function(db)
   for map, names in pairs(db.areas or {}) do
     for name, area in pairs(names) do
       local _, best = SpotsText(area.spots)
-      list[#list + 1] = { id = map .. ":" .. name, label = name, sub = (area.zone or "") .. ", map " .. map, record = area, spot = best }
+      list[#list + 1] = { id = map .. ":" .. name, label = name, sub = L["%s, map %s"]:format(area.zone or "", map), record = area, spot = best }
     end
   end
   return list
@@ -259,7 +260,7 @@ end
 ENTRIES.discovered = function(db)
   local list = {}
   for name, place in pairs(db.discovered or {}) do
-    list[#list + 1] = { id = name, label = name, sub = place.xp and (place.xp .. " xp") or nil, record = place,
+    list[#list + 1] = { id = name, label = name, sub = place.xp and L["%s xp"]:format(place.xp) or nil, record = place,
       spot = place.map and { map = place.map, x = place.x, y = place.y } or nil }
   end
   return list
@@ -269,20 +270,20 @@ ENTRIES.graveyards = function(db)
   local list = {}
   for map, spots in pairs(db.graveyards and db.graveyards.spots or {}) do
     for index, spot in ipairs(spots) do
-      list[#list + 1] = { id = map .. ":" .. index, label = ("Map %s: %.1f, %.1f"):format(tostring(map), spot[1], spot[2]),
-        sub = "seen " .. (spot[3] or 1) .. "x", record = { map = map, x = spot[1], y = spot[2], n = spot[3] },
+      list[#list + 1] = { id = map .. ":" .. index, label = L["Map %s: %.1f, %.1f"]:format(tostring(map), spot[1], spot[2]),
+        sub = L["seen %sx"]:format(spot[3] or 1), record = { map = map, x = spot[1], y = spot[2], n = spot[3] },
         spot = { map = map, x = spot[1], y = spot[2] } }
     end
   end
   return list
 end
 
-local VIGNETTE_TYPES = { [0] = "rare / event", [1] = "PvP bounty", [2] = "Torghast", [3] = "treasure" }
+local VIGNETTE_TYPES = { [0] = L["rare / event"], [1] = L["PvP bounty"], [2] = "Torghast", [3] = L["treasure"] }
 ENTRIES.vignettes = function(db)
   local list = {}
   for id, v in pairs(db.vignettes or {}) do
     local _, best = SpotsText(v.spots)
-    local kind = v.atlas and (v.atlas:lower():find("treasure") and "treasure" or v.atlas:lower():find("rare") and "rare") or VIGNETTE_TYPES[v.type]
+    local kind = v.atlas and (v.atlas:lower():find("treasure") and L["treasure"] or v.atlas:lower():find("rare") and L["rare"]) or VIGNETTE_TYPES[v.type]
     list[#list + 1] = { id = id, label = (v.name or "?") .. " (" .. id .. ")", sub = kind, record = v, spot = best }
   end
   return list
@@ -292,7 +293,7 @@ ENTRIES.pois = function(db)
   local list = {}
   for map, pois in pairs(db.pois or {}) do
     for id, poi in pairs(pois) do
-      list[#list + 1] = { id = map .. ":" .. id, label = (poi.name or "?"), sub = "map " .. map, record = poi,
+      list[#list + 1] = { id = map .. ":" .. id, label = (poi.name or "?"), sub = L["map %s"]:format(map), record = poi,
         spot = poi.x and { map = map, x = poi.x, y = poi.y } or nil }
     end
   end
@@ -319,7 +320,7 @@ end
 ENTRIES.texts = function(db)
   local list = {}
   for key, text in pairs(db.texts or {}) do
-    list[#list + 1] = { id = key, label = text.title or key, sub = Count(text.pages) .. " pages", record = text }
+    list[#list + 1] = { id = key, label = text.title or key, sub = L["%d pages"]:format(Count(text.pages)), record = text }
   end
   return list
 end
@@ -327,7 +328,7 @@ end
 ENTRIES.speech = function(db)
   local list = {}
   for name, says in pairs(db.speech or {}) do
-    list[#list + 1] = { id = name, label = name, sub = Count(says) .. " lines", record = says }
+    list[#list + 1] = { id = name, label = name, sub = L["%d lines"]:format(Count(says)), record = says }
   end
   return list
 end
@@ -388,7 +389,7 @@ local function Head(lines, text)
 end
 local function Field(lines, label, value)
   if value ~= nil and value ~= "" then
-    lines[#lines + 1] = MUTED .. label .. ":|r " .. tostring(value)
+    lines[#lines + 1] = MUTED .. L["%s:"]:format(label) .. "|r " .. tostring(value)
   end
 end
 local function Spots(lines, label, spots)
@@ -437,13 +438,13 @@ local function QuestsLinked(kind, id)
     if quest.ends and quest.ends[kind] and quest.ends[kind][id] then ends[#ends + 1] = QuestName(questID) end
     for index, causes in pairs(kind == "npc" and quest.objectiveNpcs or {}) do
       if causes[id] then
-        objectives[#objectives + 1] = QuestName(questID) .. ", objective " .. index .. " (" .. causes[id] .. "x)"
+        objectives[#objectives + 1] = L["%s, objective %s (%sx)"]:format(QuestName(questID), index, causes[id])
       end
     end
     for index, causes in pairs(quest.objectiveSources or {}) do
       for key, count in pairs(causes) do
         if key == sourceKey or (kind == "npc" and (key == "skin:" .. id or key == "pick:" .. id)) then
-          objectives[#objectives + 1] = QuestName(questID) .. ", objective " .. index .. " (" .. count .. "x, " .. key:match("^%a+") .. ")"
+          objectives[#objectives + 1] = L["%s, objective %s (%sx, %s)"]:format(QuestName(questID), index, count, key:match("^%a+"))
         end
       end
     end
@@ -464,7 +465,7 @@ local function Relations(lines, kind, id)
       for itemID in pairs(record.items or {}) do
         local quest = DB().questItems and DB().questItems[itemID]
         if quest then
-          questItems[#questItems + 1] = ItemName(itemID) .. (type(quest) == "number" and (" for " .. QuestName(quest)) or "")
+          questItems[#questItems + 1] = type(quest) == "number" and L["%s for %s"]:format(ItemName(itemID), QuestName(quest)) or ItemName(itemID)
         end
       end
     end
@@ -472,11 +473,11 @@ local function Relations(lines, kind, id)
   if #starts + #ends + #objectives + #questItems == 0 then
     return
   end
-  Head(lines, "Quests")
-  for _, name in ipairs(starts) do lines[#lines + 1] = "  starts " .. name end
-  for _, name in ipairs(ends) do lines[#lines + 1] = "  ends " .. name end
-  for _, name in ipairs(objectives) do lines[#lines + 1] = "  counts for " .. name end
-  for _, name in ipairs(questItems) do lines[#lines + 1] = "  drops quest item " .. name end
+  Head(lines, L["Quests"])
+  for _, name in ipairs(starts) do lines[#lines + 1] = "  " .. L["starts %s"]:format(name) end
+  for _, name in ipairs(ends) do lines[#lines + 1] = "  " .. L["ends %s"]:format(name) end
+  for _, name in ipairs(objectives) do lines[#lines + 1] = "  " .. L["counts for %s"]:format(name) end
+  for _, name in ipairs(questItems) do lines[#lines + 1] = "  " .. L["drops quest item %s"]:format(name) end
 end
 
 -- What a loot source's record says it dropped (for an object or a creature's details).
@@ -485,7 +486,7 @@ local function Drops(lines, key)
   if not record then
     return
   end
-  Head(lines, "Loot (" .. key:match("^%a+") .. ", opened " .. (record.opened or 0) .. ")")
+  Head(lines, L["Loot (%s, opened %s)"]:format(key:match("^%a+"), record.opened or 0))
   for itemID, pair in pairs(record.items or {}) do
     lines[#lines + 1] = ("  %s: %.0f%%"):format(ItemName(itemID), pair[1] / math.max(1, record.opened or 1) * 100)
   end
@@ -495,7 +496,7 @@ local function SaysLines(lines, says)
   if type(says) ~= "table" then
     return
   end
-  Head(lines, "Says")
+  Head(lines, L["Says"])
   local rows = {}
   for text, how in pairs(says) do
     rows[#rows + 1] = "  (" .. tostring(how) .. ") " .. text
@@ -509,190 +510,194 @@ end
 local DETAILS = {}
 
 DETAILS.npcs = function(npc, id, lines)
-  Field(lines, "Name", npc.name)
-  Field(lines, "Title", npc.title)
-  Field(lines, "Level", npc.minLevel and (npc.minLevel .. (npc.maxLevel ~= npc.minLevel and ("-" .. npc.maxLevel) or "")) or (npc.boss and "??" or nil))
-  Field(lines, "Classification", npc.class)
-  Field(lines, "Type", npc.type)
-  Field(lines, "Faction", npc.faction)
-  Field(lines, "Reaction", npc.reaction)
-  Field(lines, "Beast family", npc.family)
-  Field(lines, "Power", npc.power and (({ [0] = "mana", [1] = "rage", [2] = "focus", [3] = "energy", [6] = "runic power" })[npc.power] or npc.power))
-  Field(lines, "Binds you to", npc.inn)
-  Field(lines, "Comes back within", npc.respawnSeen and (math.floor(npc.respawnSeen / 60) .. " min " .. (npc.respawnSeen % 60) .. " s (shortest wait seen)"))
-  Field(lines, "Flight point discovered here", npc.discoversFlightPath and "yes")
+  Field(lines, L["Name"], npc.name)
+  Field(lines, L["Title"], npc.title)
+  Field(lines, L["Level"], npc.minLevel and (npc.minLevel .. (npc.maxLevel ~= npc.minLevel and ("-" .. npc.maxLevel) or "")) or (npc.boss and "??" or nil))
+  Field(lines, L["Classification"], npc.class)
+  Field(lines, L["Type"], npc.type)
+  Field(lines, L["Faction"], npc.faction)
+  Field(lines, L["Reaction"], npc.reaction)
+  Field(lines, L["Beast family"], npc.family)
+  Field(lines, L["Power"], npc.power and (({ [0] = L["mana"], [1] = L["rage"], [2] = L["focus"], [3] = L["energy"], [6] = L["runic power"] })[npc.power] or npc.power))
+  Field(lines, L["Binds you to"], npc.inn)
+  Field(lines, L["Comes back within"], npc.respawnSeen and L["%s min %s s (shortest wait seen)"]:format(math.floor(npc.respawnSeen / 60), npc.respawnSeen % 60))
+  Field(lines, L["Flight point discovered here"], npc.discoversFlightPath and L["yes"])
   if type(npc.options) == "table" then
-    Head(lines, "Talk options lead to")
+    Head(lines, L["Talk options lead to"])
     for name, what in pairs(npc.options) do
       lines[#lines + 1] = "  " .. name .. ": " .. tostring(what)
     end
   end
-  Field(lines, "Services", Set(npc.services))
-  Field(lines, "Flight point", npc.taxiNode and NodeName(npc.taxiNode))
-  Field(lines, "Boss of encounter", npc.encounter)
-  Field(lines, "Skinnable", npc.skinnable and ("yes" .. (npc.skinSkillMin and (", skinned at skill " .. npc.skinSkillMin) or "")))
-  Field(lines, "Needs", npc.requires and (npc.requires.skill .. " " .. (npc.requires.level or "")))
+  Field(lines, L["Services"], Set(npc.services))
+  Field(lines, L["Flight point"], npc.taxiNode and NodeName(npc.taxiNode))
+  Field(lines, L["Boss of encounter"], npc.encounter)
+  Field(lines, L["Skinnable"], npc.skinnable and (npc.skinSkillMin and L["yes, skinned at skill %s"]:format(npc.skinSkillMin) or L["yes"]))
+  Field(lines, L["Needs"], npc.requires and (npc.requires.skill .. " " .. (npc.requires.level or "")))
   Relations(lines, "npc", id)
   if type(npc.xp) == "table" then
-    Head(lines, "XP per kill (your level: average)")
+    Head(lines, L["XP per kill (your level: average)"])
     for level, pair in pairs(npc.xp) do
-      lines[#lines + 1] = ("  level %s: %d (%d kills)"):format(tostring(level), math.floor(pair[1] / math.max(1, pair[2]) + 0.5), pair[2])
+      lines[#lines + 1] = "  " .. L["level %s: %d (%d kills)"]:format(tostring(level), math.floor(pair[1] / math.max(1, pair[2]) + 0.5), pair[2])
     end
   end
   if type(npc.rep) == "table" then
-    Head(lines, "Reputation per kill")
+    Head(lines, L["Reputation per kill"])
     for faction, amount in pairs(npc.rep) do
       lines[#lines + 1] = "  " .. faction .. ": " .. amount
     end
   end
   if type(npc.spells) == "table" then
-    Head(lines, "Spells seen")
+    Head(lines, L["Spells seen"])
     for spellID, count in pairs(npc.spells) do
       local name = C_Spell and C_Spell.GetSpellName and ns.Str(ns.Ask(C_Spell.GetSpellName, spellID))
-      lines[#lines + 1] = ("  %s (%d) x%d"):format(name or "spell", spellID, count)
+      lines[#lines + 1] = ("  %s (%d) x%d"):format(name or L["spell"], spellID, count)
     end
   end
   if npc.greeting then
-    Head(lines, "Greeting")
+    Head(lines, L["Greeting"])
     lines[#lines + 1] = npc.greeting
   end
   if type(npc.pages) == "table" then
     for text in pairs(npc.pages) do
       if text ~= npc.greeting then
-        Head(lines, "Talk page")
+        Head(lines, L["Talk page"])
         lines[#lines + 1] = text
       end
     end
   end
   SaysLines(lines, npc.says)
   if type(npc.gossip) == "table" and #npc.gossip > 0 then
-    Head(lines, "Talk options")
+    Head(lines, L["Talk options"])
     for _, option in ipairs(npc.gossip) do
       lines[#lines + 1] = "  " .. tostring(option.name)
     end
   end
   if type(npc.sightings) == "table" then
-    Head(lines, "Rare sightings (" .. #npc.sightings .. ")")
+    Head(lines, L["Rare sightings (%d)"]:format(#npc.sightings))
     for _, s in ipairs(npc.sightings) do
       lines[#lines + 1] = ("  %s  %s  %s"):format(date and date("%Y-%m-%d %H:%M", s.t) or tostring(s.t),
-        s.map and ("map %s %.1f, %.1f"):format(s.map, s.x or 0, s.y or 0) or "", s.dead and "dead" or "alive")
+        s.map and L["map %s %.1f, %.1f"]:format(s.map, s.x or 0, s.y or 0) or "", s.dead and L["dead"] or L["alive"])
     end
   end
   Drops(lines, "npc:" .. id)
   Drops(lines, "skin:" .. id)
   Drops(lines, "pick:" .. id)
-  Spots(lines, "Seen at", npc.spots)
+  Spots(lines, L["Seen at"], npc.spots)
 end
 
 DETAILS.objects = function(object, id, lines)
-  Field(lines, "Name", object.name)
-  Field(lines, "Gathered with", object.gather == "herb" and "Herbalism" or object.gather == "mine" and "Mining" or nil)
-  Field(lines, "Requires", object.requires and (object.requires.skill .. (object.requires.level and (" " .. object.requires.level) or "")))
-  Field(lines, "Your skill when gathered", object.skillMin and (object.skillMin .. (object.skillMax ~= object.skillMin and ("-" .. object.skillMax) or "")))
-  Field(lines, "Services", Set(object.services))
-  Field(lines, "Takes you to map", object.leadsTo and Set(object.leadsTo))
+  Field(lines, L["Name"], object.name)
+  Field(lines, L["Gathered with"], object.gather == "herb" and L["Herbalism"] or object.gather == "mine" and L["Mining"] or nil)
+  Field(lines, L["Requires"], object.requires and (object.requires.skill .. (object.requires.level and (" " .. object.requires.level) or "")))
+  Field(lines, L["Your skill when gathered"], object.skillMin and (object.skillMin .. (object.skillMax ~= object.skillMin and ("-" .. object.skillMax) or "")))
+  Field(lines, L["Services"], Set(object.services))
+  Field(lines, L["Takes you to map"], object.leadsTo and Set(object.leadsTo))
   if type(object.tooltip) == "table" then
-    Head(lines, "Its tooltip")
+    Head(lines, L["Its tooltip"])
     for _, line in ipairs(object.tooltip) do
       lines[#lines + 1] = "  " .. line
     end
   end
   Relations(lines, "object", id)
   Drops(lines, "object:" .. id)
-  Spots(lines, "Seen at", object.spots)
+  Spots(lines, L["Seen at"], object.spots)
 end
 
 DETAILS.quests = function(quest, id, lines)
-  Field(lines, "Title", QuestTitle(id, quest))
-  Field(lines, "Level", quest.level)
-  Field(lines, "Group", quest.group and quest.group > 0 and quest.group or nil)
-  Field(lines, "Zone", quest.zone)
-  Field(lines, "Tag", quest.tag)
-  Field(lines, "Quest line", quest.line)
-  Field(lines, "Offered to you at level", quest.offeredAt)
-  Field(lines, "Time limit", quest.timeLimit and (quest.timeLimit .. " s"))
-  Who(lines, "Starts at", quest.starts)
-  Who(lines, "Ends at", quest.ends)
-  Field(lines, "Taken by factions", Set(quest.factions))
-  Field(lines, "Classes", Set(quest.classes))
-  Field(lines, "Races", Set(quest.races))
-  Field(lines, "Handed in", quest.done and (quest.done .. " times"))
-  Field(lines, "XP", quest.xp or quest.rewardXP)
+  Field(lines, L["Title"], QuestTitle(id, quest))
+  Field(lines, L["Level"], quest.level)
+  Field(lines, L["Group"], quest.group and quest.group > 0 and quest.group or nil)
+  Field(lines, L["Zone"], quest.zone)
+  Field(lines, L["Tag"], quest.tag)
+  Field(lines, L["Quest line"], quest.line)
+  Field(lines, L["Offered to you at level"], quest.offeredAt)
+  Field(lines, L["Time limit"], quest.timeLimit and L["%s s"]:format(quest.timeLimit))
+  Who(lines, L["Starts at"], quest.starts)
+  Who(lines, L["Ends at"], quest.ends)
+  Field(lines, L["Taken by factions"], Set(quest.factions))
+  Field(lines, L["Classes"], Set(quest.classes))
+  Field(lines, L["Races"], Set(quest.races))
+  Field(lines, L["Handed in"], quest.done and L["%s times"]:format(quest.done))
+  Field(lines, L["XP"], quest.xp or quest.rewardXP)
   if type(quest.xpByLevel) == "table" then
     local parts = {}
     for level, xp in pairs(quest.xpByLevel) do
       parts[#parts + 1] = level .. ": " .. xp
     end
     table.sort(parts)
-    Field(lines, "XP by your level", table.concat(parts, ", "))
+    Field(lines, L["XP by your level"], table.concat(parts, ", "))
   end
-  Field(lines, "Money", (quest.money or quest.rewardMoney) and Money(quest.money or quest.rewardMoney))
+  Field(lines, L["Money"], (quest.money or quest.rewardMoney) and Money(quest.money or quest.rewardMoney))
   if type(quest.after) == "table" then
-    Head(lines, "Offered after")
+    Head(lines, L["Offered after"])
     for before, count in pairs(quest.after) do
       lines[#lines + 1] = "  " .. QuestName(before) .. " x" .. count
     end
   end
   if type(quest.rep) == "table" then
-    Head(lines, "Reputation")
+    Head(lines, L["Reputation"])
     for faction, amount in pairs(quest.rep) do
       lines[#lines + 1] = "  " .. faction .. ": " .. amount
     end
   end
-  ItemList(lines, "Choice of rewards", quest.choices)
-  ItemList(lines, "Rewards", quest.rewards)
-  ItemList(lines, "Required items", quest.required)
+  ItemList(lines, L["Choice of rewards"], quest.choices)
+  ItemList(lines, L["Rewards"], quest.rewards)
+  ItemList(lines, L["Required items"], quest.required)
   -- what moved its objectives on: kills, loot sources, objects
   for index, causes in pairs(quest.objectiveNpcs or {}) do
-    Head(lines, "Objective " .. index .. ": kills")
+    Head(lines, L["Objective %s: kills"]:format(index))
     for npcID, count in pairs(causes) do
       lines[#lines + 1] = "  " .. NpcName(npcID) .. " x" .. count
     end
   end
   for index, causes in pairs(quest.objectiveSources or {}) do
-    Head(lines, "Objective " .. index .. ": from")
+    Head(lines, L["Objective %s: from"]:format(index))
     for key, count in pairs(causes) do
       lines[#lines + 1] = "  " .. (SourceName(key)) .. " (" .. key:match("^%a+") .. ") x" .. count
     end
   end
   if type(quest.dropItems) == "table" then
-    Head(lines, "Items that drop for it")
+    Head(lines, L["Items that drop for it"])
     for itemID in pairs(quest.dropItems) do
       lines[#lines + 1] = "  " .. ItemName(itemID)
     end
   end
-  Field(lines, "Required money", quest.requiredMoney and Money(quest.requiredMoney))
+  Field(lines, L["Required money"], quest.requiredMoney and Money(quest.requiredMoney))
   if type(quest.objectives) == "table" then
-    Head(lines, "Objectives")
+    Head(lines, L["Objectives"])
     for _, objective in ipairs(quest.objectives) do
       lines[#lines + 1] = "  " .. tostring(objective.text or objective.type or "?")
     end
   end
-  for _, field in ipairs({ { "text", "Objective text" }, { "description", "Description" },
-    { "progressText", "Progress text" }, { "completionText", "Completion text" } }) do
+  for _, field in ipairs({ { "text", L["Objective text"] }, { "description", L["Description"] },
+    { "progressText", L["Progress text"] }, { "completionText", L["Completion text"] } }) do
     if quest[field[1]] then
       Head(lines, field[2])
       lines[#lines + 1] = quest[field[1]]
     end
   end
-  Spots(lines, "Accepted at", quest.accepted and quest.accepted.spots)
+  Spots(lines, L["Accepted at"], quest.accepted and quest.accepted.spots)
   for index, record in pairs(quest.objectiveSpots or {}) do
-    Spots(lines, "Objective " .. index .. " done at", record.spots)
+    Spots(lines, L["Objective %s done at"]:format(index), record.spots)
   end
 end
 
 DETAILS.vendors = function(vendor, id, lines)
-  Field(lines, "Vendor", NpcName(id))
-  Field(lines, "Last visit", vendor.seen and date and date("%Y-%m-%d %H:%M", vendor.seen))
-  Head(lines, "Items (" .. Count(vendor.items) .. ")")
+  Field(lines, L["Vendor"], NpcName(id))
+  Field(lines, L["Last visit"], vendor.seen and date and date("%Y-%m-%d %H:%M", vendor.seen))
+  Head(lines, L["Items (%d)"]:format(Count(vendor.items)))
   local rows = {}
   for itemID, entry in pairs(vendor.items or {}) do
     local costs = {}
     for _, cost in ipairs(entry.costs or {}) do
       costs[#costs + 1] = (cost.amount or "?") .. " " .. (cost.item and ItemName(cost.item) or cost.currency or "")
     end
-    rows[#rows + 1] = "  " .. ItemName(itemID) .. ": " .. Money(entry.price) .. (entry.stack and entry.stack > 1 and (" for " .. entry.stack) or "")
-      .. (entry.limit and ("  (stock " .. entry.limit .. ")") or "") .. (#costs > 0 and ("  + " .. table.concat(costs, ", ")) or "")
+    local price = Money(entry.price)
+    if entry.stack and entry.stack > 1 then
+      price = L["%s per %s"]:format(price, entry.stack)
+    end
+    rows[#rows + 1] = "  " .. ItemName(itemID) .. ": " .. price
+      .. (entry.limit and ("  " .. L["(stock %s)"]:format(entry.limit)) or "") .. (#costs > 0 and ("  + " .. table.concat(costs, ", ")) or "")
       .. (type(entry.requires) == "table" and ("  [" .. table.concat(entry.requires, "; ") .. "]") or "")
   end
   table.sort(rows)
@@ -702,13 +707,14 @@ DETAILS.vendors = function(vendor, id, lines)
 end
 
 DETAILS.trainers = function(trainer, id, lines)
-  Field(lines, "Trainer", NpcName(id))
-  Field(lines, "Type", trainer.type)
-  Head(lines, "Services (" .. Count(trainer.services) .. ")")
+  Field(lines, L["Trainer"], NpcName(id))
+  Field(lines, L["Type"], trainer.type)
+  Head(lines, L["Services (%d)"]:format(Count(trainer.services)))
   local rows = {}
   for _, s in pairs(trainer.services or {}) do
-    rows[#rows + 1] = ("  %s%s  level %s  %s%s"):format(s.name or "?", s.rank and (" (" .. s.rank .. ")") or "",
-      tostring(s.level or "?"), Money(s.cost), s.skill and ("  needs " .. s.skill .. " " .. tostring(s.skillRank or "")) or "")
+    rows[#rows + 1] = ("  %s%s  %s  %s%s"):format(s.name or "?", s.rank and (" (" .. s.rank .. ")") or "",
+      L["level %s"]:format(tostring(s.level or "?")), Money(s.cost),
+      s.skill and ("  " .. L["needs %s %s"]:format(s.skill, tostring(s.skillRank or ""))) or "")
   end
   table.sort(rows)
   for _, row in ipairs(rows) do
@@ -718,16 +724,16 @@ end
 
 DETAILS.loot = function(record, key, lines)
   local name, kind = SourceName(key)
-  Field(lines, "Source", name)
-  Field(lines, "Kind", kind)
-  Field(lines, "Opened", record.opened)
-  Field(lines, "Coins", record.money and (Money(math.floor(record.money / math.max(1, record.moneyTimes or 1))) .. " on average (" .. (record.moneyTimes or 0) .. " times)"))
-  Field(lines, "Fishing skill", record.skillMin and (record.skillMin .. "-" .. record.skillMax))
-  Head(lines, "Drops")
+  Field(lines, L["Source"], name)
+  Field(lines, L["Kind"], kind)
+  Field(lines, L["Opened"], record.opened)
+  Field(lines, L["Coins"], record.money and L["%s on average (%s times)"]:format(Money(math.floor(record.money / math.max(1, record.moneyTimes or 1))), record.moneyTimes or 0))
+  Field(lines, L["Fishing skill"], record.skillMin and (record.skillMin .. "-" .. record.skillMax))
+  Head(lines, L["Drops"])
   local rows = {}
   for itemID, pair in pairs(record.items or {}) do
     local chance = pair[1] / math.max(1, record.opened or 1) * 100
-    rows[#rows + 1] = { chance, ("  %s: %d times (%.1f%%), %d in all"):format(ItemName(itemID), pair[1], chance, pair[2]) }
+    rows[#rows + 1] = { chance, "  " .. L["%s: %d times (%.1f%%), %d in all"]:format(ItemName(itemID), pair[1], chance, pair[2]) }
   end
   table.sort(rows, function(a, b) return a[1] > b[1] end)
   for _, row in ipairs(rows) do
@@ -736,18 +742,18 @@ DETAILS.loot = function(record, key, lines)
 end
 
 DETAILS.taxi = function(node, id, lines)
-  Field(lines, "Name", node.name)
-  Field(lines, "Map", node.map and ("%s: %.1f, %.1f"):format(node.map, node.x or 0, node.y or 0))
-  Field(lines, "Faction", node.faction)
-  Field(lines, "Flight master", node.master and NpcName(node.master))
+  Field(lines, L["Name"], node.name)
+  Field(lines, L["Map"], node.map and ("%s: %.1f, %.1f"):format(node.map, node.x or 0, node.y or 0))
+  Field(lines, L["Faction"], node.faction)
+  Field(lines, L["Flight master"], node.master and NpcName(node.master))
   if type(node.costs) == "table" then
-    Head(lines, "Flights from here cost")
+    Head(lines, L["Flights from here cost"])
     for to, cost in pairs(node.costs) do
       lines[#lines + 1] = "  " .. NodeName(to) .. ": " .. Money(cost)
     end
   end
   if type(node.routes) == "table" then
-    Head(lines, "Routes from here")
+    Head(lines, L["Routes from here"])
     for to, path in pairs(node.routes) do
       local hops = {}
       for _, hop in ipairs(path) do
@@ -759,25 +765,25 @@ DETAILS.taxi = function(node, id, lines)
 end
 
 DETAILS.instances = function(instance, id, lines)
-  Field(lines, "Name", instance.name)
-  Field(lines, "Type", instance.type)
-  Field(lines, "Difficulties", Set(instance.difficulties))
-  Head(lines, "Bosses")
+  Field(lines, L["Name"], instance.name)
+  Field(lines, L["Type"], instance.type)
+  Field(lines, L["Difficulties"], Set(instance.difficulties))
+  Head(lines, L["Bosses"])
   for encounterID, encounter in pairs(DB().encounters or {}) do
     if encounter.instance == id then
       lines[#lines + 1] = "  " .. (encounter.name or "?") .. " (" .. encounterID .. ")"
     end
   end
-  Spots(lines, "Entrance", instance.entrance and instance.entrance.spots)
+  Spots(lines, L["Entrance"], instance.entrance and instance.entrance.spots)
 end
 
 DETAILS.encounters = function(encounter, id, lines)
-  Field(lines, "Name", encounter.name)
-  Field(lines, "Dungeon", encounter.instance and DB().instances and DB().instances[encounter.instance] and DB().instances[encounter.instance].name)
-  Field(lines, "Kills", encounter.kills)
-  Field(lines, "Wipes", encounter.wipes)
-  Field(lines, "Difficulties", Set(encounter.difficulties))
-  Head(lines, "Its creatures")
+  Field(lines, L["Name"], encounter.name)
+  Field(lines, L["Dungeon"], encounter.instance and DB().instances and DB().instances[encounter.instance] and DB().instances[encounter.instance].name)
+  Field(lines, L["Kills"], encounter.kills)
+  Field(lines, L["Wipes"], encounter.wipes)
+  Field(lines, L["Difficulties"], Set(encounter.difficulties))
+  Head(lines, L["Its creatures"])
   for npcID in pairs(encounter.npcs or {}) do
     lines[#lines + 1] = "  " .. NpcName(npcID)
   end
@@ -785,58 +791,58 @@ end
 
 DETAILS.flights = function(record, key, lines)
   local from, to = tostring(key):match("^(%d+)%-(%d+)$")
-  Field(lines, "From", NodeName(from))
-  Field(lines, "To", NodeName(to))
-  Field(lines, "Average", record.n and record.n > 0 and (math.floor(record.sum / record.n + 0.5) .. " s"))
+  Field(lines, L["From"], NodeName(from))
+  Field(lines, L["To"], NodeName(to))
+  Field(lines, L["Average"], record.n and record.n > 0 and L["%s s"]:format(math.floor(record.sum / record.n + 0.5)))
   local fromNode = DB().taxi and DB().taxi[tonumber(from)]
   local cost = fromNode and fromNode.costs and fromNode.costs[tonumber(to)]
-  Field(lines, "Costs", cost and Money(cost))
-  Field(lines, "Flown", record.n)
+  Field(lines, L["Costs"], cost and Money(cost))
+  Field(lines, L["Flown"], record.n)
 end
 
 DETAILS.areas = function(area, key, lines)
-  Field(lines, "Sub-zone", tostring(key):match(":(.*)$"))
-  Field(lines, "Zone", area.zone)
-  Spots(lines, "Where", area.spots)
+  Field(lines, L["Sub-zone"], tostring(key):match(":(.*)$"))
+  Field(lines, L["Zone"], area.zone)
+  Spots(lines, L["Where"], area.spots)
 end
 
 DETAILS.discovered = function(place, name, lines)
-  Field(lines, "Place", name)
-  Field(lines, "XP", place.xp)
-  Field(lines, "Where", place.map and ("map %s: %.1f, %.1f"):format(place.map, place.x or 0, place.y or 0))
+  Field(lines, L["Place"], name)
+  Field(lines, L["XP"], place.xp)
+  Field(lines, L["Where"], place.map and L["map %s: %.1f, %.1f"]:format(place.map, place.x or 0, place.y or 0))
 end
 
 DETAILS.graveyards = function(spot, key, lines)
-  Field(lines, "Map", spot.map)
-  Field(lines, "Spot", ("%.1f, %.1f"):format(spot.x or 0, spot.y or 0))
-  Field(lines, "Seen", spot.n)
+  Field(lines, L["Map"], spot.map)
+  Field(lines, L["Spot"], ("%.1f, %.1f"):format(spot.x or 0, spot.y or 0))
+  Field(lines, L["Seen"], spot.n)
 end
 
 DETAILS.vignettes = function(v, id, lines)
-  Field(lines, "Name", v.name)
-  Field(lines, "Marker", v.atlas)
-  Field(lines, "Is", v.kind and (v.kind == "npc" and NpcName(v.id) or ObjectName(v.id)))
-  Field(lines, "Reward quest", v.quest and QuestName(v.quest))
-  Spots(lines, "Seen at", v.spots)
+  Field(lines, L["Name"], v.name)
+  Field(lines, L["Marker"], v.atlas)
+  Field(lines, L["Is"], v.kind and (v.kind == "npc" and NpcName(v.id) or ObjectName(v.id)))
+  Field(lines, L["Reward quest"], v.quest and QuestName(v.quest))
+  Spots(lines, L["Seen at"], v.spots)
 end
 
 DETAILS.pois = function(poi, key, lines)
-  Field(lines, "Name", poi.name)
-  Field(lines, "Description", poi.description)
-  Field(lines, "Map", tostring(key):match("^(%d+)"))
-  Field(lines, "Spot", poi.x and ("%.1f, %.1f"):format(poi.x, poi.y))
-  Field(lines, "Leads to map", poi.linkedMap)
-  Field(lines, "Icon", poi.atlas)
+  Field(lines, L["Name"], poi.name)
+  Field(lines, L["Description"], poi.description)
+  Field(lines, L["Map"], tostring(key):match("^(%d+)"))
+  Field(lines, L["Spot"], poi.x and ("%.1f, %.1f"):format(poi.x, poi.y))
+  Field(lines, L["Leads to map"], poi.linkedMap)
+  Field(lines, L["Icon"], poi.atlas)
 end
 
 DETAILS.recipes = function(recipe, id, lines)
-  Field(lines, "Name", recipe.name)
-  Field(lines, "Profession", recipe.profession)
-  Field(lines, "Makes", recipe.product and (ItemName(recipe.product) .. (recipe.makesMax and recipe.makesMax > 1 and
+  Field(lines, L["Name"], recipe.name)
+  Field(lines, L["Profession"], recipe.profession)
+  Field(lines, L["Makes"], recipe.product and (ItemName(recipe.product) .. (recipe.makesMax and recipe.makesMax > 1 and
     (" x" .. recipe.makesMin .. (recipe.makesMax ~= recipe.makesMin and ("-" .. recipe.makesMax) or "")) or "")))
-  ItemList(lines, "Reagents", recipe.reagents)
+  ItemList(lines, L["Reagents"], recipe.reagents)
   if type(recipe.colors) == "table" then
-    Head(lines, "Colour at your skill")
+    Head(lines, L["Colour at your skill"])
     local rows = {}
     for skill, color in pairs(recipe.colors) do
       rows[#rows + 1] = { skill, ("  %d: %s"):format(skill, tostring(color)) }
@@ -849,42 +855,42 @@ DETAILS.recipes = function(recipe, id, lines)
 end
 
 DETAILS.prices = function(prices, itemID, lines)
-  Field(lines, "Item", ItemName(itemID))
-  Head(lines, "Lowest price seen")
+  Field(lines, L["Item"], ItemName(itemID))
+  Head(lines, L["Lowest price seen"])
   for i = #prices, 1, -1 do
     local p = prices[i]
     lines[#lines + 1] = ("  %s  %s%s"):format(date and date("%Y-%m-%d %H:%M", p.t) or tostring(p.t), Money(p.p),
-      p.q and ("  (" .. p.q .. " up)") or "")
+      p.q and ("  " .. L["(%s up)"]:format(p.q)) or "")
   end
 end
 
 DETAILS.texts = function(text, key, lines)
-  Field(lines, "Title", text.title)
+  Field(lines, L["Title"], text.title)
   local kind, id = tostring(key):match("^(%a+):(%d+)$")
-  Field(lines, "From", kind == "object" and ObjectName(tonumber(id)) or kind == "item" and ItemName(tonumber(id)) or nil)
+  Field(lines, L["From"], kind == "object" and ObjectName(tonumber(id)) or kind == "item" and ItemName(tonumber(id)) or nil)
   local pages = {}
   for page in pairs(text.pages or {}) do
     pages[#pages + 1] = page
   end
   table.sort(pages)
   for _, page in ipairs(pages) do
-    Head(lines, "Page " .. page)
+    Head(lines, L["Page %s"]:format(page))
     lines[#lines + 1] = text.pages[page]
   end
 end
 
 DETAILS.speech = function(says, name, lines)
-  Field(lines, "Speaker", name)
+  Field(lines, L["Speaker"], name)
   SaysLines(lines, says)
 end
 
 DETAILS.mail = function(letter, key, lines)
-  Field(lines, "From", letter.sender)
-  Field(lines, "Subject", letter.subject)
-  Field(lines, "Money", letter.money and Money(letter.money))
-  ItemList(lines, "Items", letter.items)
+  Field(lines, L["From"], letter.sender)
+  Field(lines, L["Subject"], letter.subject)
+  Field(lines, L["Money"], letter.money and Money(letter.money))
+  ItemList(lines, L["Items"], letter.items)
   if letter.text then
-    Head(lines, "Text")
+    Head(lines, L["Text"])
     lines[#lines + 1] = letter.text
   end
 end
@@ -945,7 +951,7 @@ function V.Refresh()
     return
   end
   frame.summary:SetText(ns.Summary and ns.Summary() or "")
-  frame.pause:SetText(ns.IsPaused and ns.IsPaused() and "Resume" or "Pause")
+  frame.pause:SetText(ns.IsPaused and ns.IsPaused() and L["Resume"] or L["Pause"])
   for _, button in ipairs(frame.kinds) do
     local on = button.kind == V.kind
     button.label:SetText(button.name)
@@ -969,7 +975,7 @@ function V.Refresh()
       row:Hide()
     end
   end
-  frame.range:SetText(#list == 0 and "nothing yet" or ("%d-%d of %d"):format(V.offset + 1, math.min(#list, V.offset + ROWS), #list))
+  frame.range:SetText(#list == 0 and L["nothing yet"] or L["%d-%d of %d"]:format(V.offset + 1, math.min(#list, V.offset + ROWS), #list))
   local chosen
   for _, entry in ipairs(list) do
     if entry.id == V.selected then
@@ -977,7 +983,7 @@ function V.Refresh()
     end
   end
   V.chosen = chosen
-  frame.detailTitle:SetText(chosen and chosen.label or "Pick an entry on the left")
+  frame.detailTitle:SetText(chosen and chosen.label or L["Pick an entry on the left"])
   frame.detail:SetText(chosen and V.Details(V.kind, chosen) or "")
   frame.detailChild:SetHeight(math.max(10, (frame.detail:GetStringHeight() or 0) + 10))
   frame.mapButton:SetEnabled(chosen ~= nil and chosen.spot ~= nil and chosen.spot.map ~= nil)
@@ -1006,7 +1012,7 @@ function V.ShowOnMap()
     return false
   end
   if C_Map.CanSetUserWaypointOnMap and not C_Map.CanSetUserWaypointOnMap(spot.map) then
-    print("|cffc8a25aTylesser Collector:|r the game doesn't allow a map pin on that map.")
+    print("|cffc8a25aTylesser Collector:|r " .. L["the game doesn't allow a map pin on that map."])
     return false
   end
   C_Map.SetUserWaypoint(UiMapPoint.CreateFromCoordinates(spot.map, spot.x / 100, spot.y / 100))
@@ -1039,7 +1045,7 @@ local function Build()
   frame.summary:SetPoint("TOPLEFT", 18, -42)
   frame.summary:SetPoint("RIGHT", -290, 0)
   frame.summary:SetWordWrap(true)
-  frame.pause = T.Button(frame, 80, 22, "Pause")
+  frame.pause = T.Button(frame, 80, 22, L["Pause"])
   frame.pause:SetPoint("TOPRIGHT", -18, -40)
   frame.pause:SetScript("OnClick", function()
     if ns.SetPaused then
@@ -1047,11 +1053,11 @@ local function Build()
     end
     V.Refresh()
   end)
-  local refresh = T.Button(frame, 80, 22, "Refresh")
+  local refresh = T.Button(frame, 80, 22, L["Refresh"])
   refresh:SetPoint("RIGHT", frame.pause, "LEFT", -6, 0)
   refresh:SetScript("OnClick", V.Refresh)
   -- sharing on tylesser.com (the link to copy and where the file is)
-  frame.upload = T.Button(frame, 90, 22, "Upload", true)
+  frame.upload = T.Button(frame, 90, 22, L["Upload"], true)
   frame.upload:SetPoint("RIGHT", refresh, "LEFT", -6, 0)
   frame.upload:SetScript("OnClick", function()
     if ns.ShowUpload then
@@ -1065,7 +1071,7 @@ local function Build()
     local button = CreateFrame("Button", nil, frame)
     button:SetSize(SIDE, 24)
     button:SetPoint("TOPLEFT", 14, -72 - (index - 1) * 25)
-    button.kind, button.name = info.key, info.name
+    button.kind, button.name = info.key, info.label
     local hover = button:CreateTexture(nil, "HIGHLIGHT")
     hover:SetAllPoints()
     hover:SetColorTexture(T.GOLD[1], T.GOLD[2], T.GOLD[3], 0.1)
@@ -1093,7 +1099,7 @@ local function Build()
   end
   search.hint = SmallText(search, 11, T.MUTED)
   search.hint:SetPoint("LEFT", 2, 0)
-  search.hint:SetText("Search")
+  search.hint:SetText(L["Search"])
   search:SetScript("OnTextChanged", function(self)
     V.filter = self:GetText() or ""
     self.hint:SetShown(V.filter == "")
@@ -1170,12 +1176,12 @@ local function Build()
   frame.detail:SetWordWrap(true)
   frame.detail:SetSpacing(2)
   frame.detailScroll, frame.detailChild = scroll, child
-  frame.mapButton = T.Button(frame, 130, 24, "Show on map")
+  frame.mapButton = T.Button(frame, 130, 24, L["Show on map"])
   frame.mapButton:SetPoint("BOTTOMRIGHT", -14, 14)
   frame.mapButton:SetScript("OnClick", V.ShowOnMap)
   local note = SmallText(frame, 10, T.MUTED)
   note:SetPoint("BOTTOMLEFT", 16, 18)
-  note:SetText("Saved on /reload or logout. Share it with Upload: it goes into the Tylesser - Data addon.")
+  note:SetText(L["Saved on /reload or logout. Share it with Upload: it goes into the Tylesser - Data addon."])
   frame:SetScript("OnShow", V.Refresh)
   frame:Hide()
   V.frame = frame
